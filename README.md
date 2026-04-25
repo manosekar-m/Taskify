@@ -82,7 +82,7 @@
 ---
 
 ## 👨‍💻 Author
-**Mano Sekar M**
+**ManoSekar M**
 *   [LinkedIn Profile](https://www.linkedin.com/in/manosekar-m/)
 *   [GitHub](https://github.com/manosekar-m)
 
