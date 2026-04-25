@@ -155,13 +155,13 @@ class _HomeScreenState extends State<HomeScreen> {
         return Scaffold(
           backgroundColor: theme.scaffoldBackgroundColor,
           body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: () async {
-            setState(() {
-              _focusedDay = DateTime.now();
-              if (isTodaySelected) _selectedDay = DateTime.now();
-            });
-          },
+            child: RefreshIndicator(
+              onRefresh: () async {
+                setState(() {
+                  _focusedDay = DateTime.now();
+                  if (isTodaySelected) _selectedDay = DateTime.now();
+                });
+              },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 25),
