@@ -259,7 +259,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     valueListenable: settingsBox.listenable(keys: ['is24Hours', 'showRoughNotes']),
                     builder: (context, box, _) {
                       final bool is24 = box.get('is24Hours', defaultValue: false);
-                      final String fmt = is24 ? 'HH:mm' : 'hh:mm';
+                      final String fmt = is24 ? 'HH:mm' : 'h:mm';
                       
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -314,6 +314,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
                                     Text(
                                       DateFormat(fmt).format(_now.toUtc()),
                                       style: TextStyle(
@@ -322,6 +325,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                         color: theme.primaryColor,
                                       ),
                                     ),
+                                    if (!is24)
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 4),
+                                        child: Text(
+                                          DateFormat('a').format(_now.toUtc()),
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color: theme.hintColor,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
                                     Text(
                                       "GLOBAL (UTC)",
                                       style: TextStyle(
