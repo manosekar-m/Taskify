@@ -191,7 +191,7 @@ class TaskCard extends StatelessWidget {
     bool isPast = now.isAfter(endDateTime);
 
     return ValueListenableBuilder<Box>(
-      valueListenable: Hive.box('settings').listenable(keys: ['is24Hours']),
+      valueListenable: Hive.box('settings').listenable(),
       builder: (context, box, _) {
         final bool is24Hours = box.get('is24Hours', defaultValue: false);
         final format = is24Hours ? DateFormat('HH:mm') : DateFormat('h:mm a');

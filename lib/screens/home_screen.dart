@@ -256,7 +256,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 
                 if (isTodaySelected) ...[
                   ValueListenableBuilder<Box>(
-                    valueListenable: settingsBox.listenable(keys: ['is24Hours', 'showRoughNotes']),
+                    valueListenable: settingsBox.listenable(),
                     builder: (context, box, _) {
                       final bool is24 = box.get('is24Hours', defaultValue: false);
                       final String fmt = is24 ? 'HH:mm' : 'h:mm';
