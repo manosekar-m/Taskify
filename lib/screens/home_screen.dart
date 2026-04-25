@@ -526,9 +526,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
+  },
+);
   }
 
   Widget _buildSwipeAction({required Color color, required IconData icon, required Alignment alignment}) {
