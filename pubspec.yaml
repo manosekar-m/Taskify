@@ -1,0 +1,50 @@
+name: taskify
+description: A simple Taskify app
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.17.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_local_notifications: ^21.0.0
+  flutter_ringtone_player: ^4.0.0+4
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  intl: ^0.20.2
+  path_provider: ^2.1.5
+  table_calendar: ^3.2.0
+  timezone: ^0.11.0
+  url_launcher: ^6.3.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  build_runner: ^2.4.13
+  flutter_lints: ^6.0.0
+  hive_generator: ^2.0.1
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.4.4
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/logo_light.png"
+  web:
+    generate: true
+    image_path: "assets/images/logo_light.png"
+    background_color: "#000000"
+    theme_color: "#000000"
+
+flutter_native_splash:
+  color: "#000000"
+  fullscreen: true
+  android_12:
+    color: "#000000"
