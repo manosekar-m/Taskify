@@ -146,9 +146,15 @@ class _HomeScreenState extends State<HomeScreen> {
     final isDark = theme.brightness == Brightness.dark;
     final settingsBox = Hive.box('settings');
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: SafeArea(
+    return ValueListenableBuilder<Box>(
+      valueListenable: settingsBox.listenable(),
+      builder: (context, settings, _) {
+        final bool is24 = settings.get('is24Hours', defaultValue: false);
+        final String fmt = is24 ? 'HH:mm' : 'h:mm';
+        
+        return Scaffold(
+          backgroundColor: theme.scaffoldBackgroundColor,
+          body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
             setState(() {
@@ -255,18 +261,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 30),
                 
                 if (isTodaySelected) ...[
-                  ValueListenableBuilder<Box>(
-                    valueListenable: settingsBox.listenable(),
-                    builder: (context, box, _) {
-                      final bool is24 = box.get('is24Hours', defaultValue: false);
-                      final String fmt = is24 ? 'HH:mm' : 'h:mm';
-                      
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(25),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(25),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: isDark 
@@ -400,13 +400,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                           ),
-                          if (box.get('showRoughNotes', defaultValue: false)) ...[
-                            const SizedBox(height: 25),
-                            _RoughNotesPreviewCard(),
-                          ],
-                        ],
-                      );
-                    }
+                      if (settings.get('showRoughNotes', defaultValue: false)) ...[
+                        const SizedBox(height: 25),
+                        _RoughNotesPreviewCard(),
+                      ],
+                    ],
                   ),
                 ] else ...[
                   CalendarHeader(
@@ -528,8 +526,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
