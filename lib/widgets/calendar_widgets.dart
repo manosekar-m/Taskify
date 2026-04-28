@@ -80,14 +80,14 @@ class OldCalendarView extends StatelessWidget {
           color: isDark ? Colors.black : Colors.white,
           fontWeight: FontWeight.bold,
         ),
-        // Changed todayDecoration to a border to avoid color conflicts when selected
+        // Today decoration with a distinct border to match black & white theme
         todayDecoration: BoxDecoration(
-          border: Border.all(color: theme.primaryColor.withValues(alpha: 0.5), width: 2),
+          border: Border.all(color: theme.primaryColor, width: 2),
           shape: BoxShape.circle,
         ),
         todayTextStyle: TextStyle(
           color: theme.primaryColor,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w900,
         ),
         defaultTextStyle: TextStyle(color: theme.primaryColor),
         weekendTextStyle: const TextStyle(color: Colors.redAccent),

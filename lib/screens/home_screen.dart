@@ -62,7 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
         duration: const Duration(seconds: 7),
         action: SnackBarAction(
           label: "Undo",
-          textColor: Colors.blue,
+          textColor: theme.primaryColor,
           onPressed: () {
             task.isCompleted = false;
             task.save();
@@ -115,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
         duration: const Duration(seconds: 7),
         action: SnackBarAction(
           label: "Undo",
-          textColor: Colors.blue,
+          textColor: theme.primaryColor,
           onPressed: () {
             tasksBox.add(Task(
               title: taskData['title'] as String,
@@ -500,7 +500,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             key: Key(task.key?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString() + index.toString()),
                             direction: DismissDirection.horizontal,
                             background: _buildSwipeAction(
-                              color: Colors.blue,
+                              color: theme.primaryColor,
                               icon: Icons.edit_rounded,
                               alignment: Alignment.centerLeft,
                             ),

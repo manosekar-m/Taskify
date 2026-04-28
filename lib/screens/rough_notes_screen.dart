@@ -307,11 +307,11 @@ class _RoughNotesScreenState extends State<RoughNotesScreen> {
                                         child: Container(
                                           padding: const EdgeInsets.all(8),
                                           decoration: BoxDecoration(
-                                            color: Colors.blue.withValues(alpha: 0.1),
+                                            color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                                             borderRadius: BorderRadius.circular(10),
                                           ),
                                           child: const Icon(Icons.edit_rounded,
-                                              size: 16, color: Colors.blue),
+                                              size: 16, color: Theme.of(context).primaryColor),
                                         ),
                                       ),
                                       const SizedBox(width: 8),

@@ -418,7 +418,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           Switch(
             value: isDark,
-            activeThumbColor: Colors.blue,
+            activeThumbColor: theme.primaryColor,
             onChanged: (val) {
               settingsBox.put('isDarkMode', val);
             },
@@ -458,7 +458,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           Switch(
             value: is12Hour,
-            activeThumbColor: Colors.blue,
+            activeThumbColor: theme.primaryColor,
             onChanged: (val) {
               settingsBox.put('is24Hours', !val);
               setState(() {});
@@ -498,7 +498,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           Switch(
             value: notificationsEnabled,
-            activeThumbColor: Colors.blue,
+            activeThumbColor: theme.primaryColor,
             onChanged: (val) {
               settingsBox.put('notificationsEnabled', val);
               setState(() {});
@@ -550,7 +550,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Colors.blue,
+                  color: theme.primaryColor,
                 ),
               ),
             ],
@@ -561,7 +561,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             min: 5,
             max: 60,
             divisions: 11,
-            activeColor: Colors.blue,
+            activeColor: theme.primaryColor,
             inactiveColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
             onChanged: (val) {
               setState(() {

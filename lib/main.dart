@@ -50,7 +50,7 @@ class TaskifyApp extends StatelessWidget {
             snackBarTheme: const SnackBarThemeData(
               backgroundColor: Colors.white,
               contentTextStyle: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-              actionTextColor: Colors.blue,
+              actionTextColor: const Color(0xFF64B5F6), // Slightly muted blue for better readability or use primary
               elevation: 4,
               behavior: SnackBarBehavior.floating,
             ),
