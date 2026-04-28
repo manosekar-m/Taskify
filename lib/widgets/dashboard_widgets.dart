@@ -187,7 +187,6 @@ class TaskCard extends StatelessWidget {
     final endDateTime = _getEndDateTime();
     
     bool isLive = now.isAfter(task.startDateTime) && now.isBefore(endDateTime);
-    bool isFuture = now.isBefore(task.startDateTime);
     bool isPast = now.isAfter(endDateTime);
 
     return ValueListenableBuilder<Box>(

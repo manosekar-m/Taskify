@@ -53,8 +53,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _updateProfile() async {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     if (nameController.text.isEmpty || emailController.text.isEmpty || passController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -120,7 +118,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _eraseAllData() {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     showDialog(
       context: context,
@@ -392,6 +389,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildThemeToggle() {
+    final theme = Theme.of(context);
     final settingsBox = Hive.box('settings');
     final isDark = settingsBox.get('isDarkMode', defaultValue: false);
 
@@ -431,6 +429,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildTimeFormatToggle() {
+    final theme = Theme.of(context);
     final settingsBox = Hive.box('settings');
     final bool is24Hours = settingsBox.get('is24Hours', defaultValue: false);
     final bool is12Hour = !is24Hours;
@@ -472,6 +471,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildNotificationToggle() {
+    final theme = Theme.of(context);
     final settingsBox = Hive.box('settings');
     final bool notificationsEnabled = settingsBox.get('notificationsEnabled', defaultValue: true);
 
@@ -522,6 +522,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildNotificationDelaySlider() {
+    final theme = Theme.of(context);
     final settingsBox = Hive.box('settings');
     final double currentDelay = settingsBox.get('notificationDelay', defaultValue: 30.0).toDouble();
 
@@ -621,6 +622,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildRoughNotesToggle() {
+    final theme = Theme.of(context);
     final settingsBox = Hive.box('settings');
     final bool showRoughNotes = settingsBox.get('showRoughNotes', defaultValue: false);
 

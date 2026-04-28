@@ -207,12 +207,17 @@ void showCreateTaskModal(BuildContext context, DateTime initialDate, {Task? task
                                   headerBackgroundColor: isDark ? const Color(0xFF2C2C2E) : theme.primaryColor.withValues(alpha: 0.1),
                                   headerForegroundColor: theme.primaryColor,
                                   backgroundColor: isDark ? const Color(0xFF1C1C1E) : Colors.white,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-                                  dayForegroundColor: WidgetStateProperty.all(theme.primaryColor),
-                                  todayForegroundColor: WidgetStateProperty.all(theme.primaryColor),
+                                  dayBackgroundColor: WidgetStateProperty.resolveWith((states) {
+                                    if (states.contains(WidgetState.selected)) return theme.primaryColor;
+                                    return null;
+                                  }),
+                                  dayForegroundColor: WidgetStateProperty.resolveWith((states) {
+                                    if (states.contains(WidgetState.selected)) {
+                                      return isDark ? Colors.black : Colors.white;
+                                    }
+                                    return theme.primaryColor;
+                                  }),
                                   todayBorder: BorderSide(color: theme.primaryColor, width: 2),
-                                  selectedDayBackgroundColor: WidgetStateProperty.all(theme.primaryColor),
-                                  selectedDayForegroundColor: WidgetStateProperty.all(isDark ? Colors.black : Colors.white),
                                 ),
                               ),
                               child: child!,

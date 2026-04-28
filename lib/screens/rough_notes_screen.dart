@@ -153,7 +153,6 @@ class _RoughNotesScreenState extends State<RoughNotesScreen> {
 
   void _deleteNote(int index) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     showDialog(
       context: context,
@@ -310,7 +309,7 @@ class _RoughNotesScreenState extends State<RoughNotesScreen> {
                                             color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                                             borderRadius: BorderRadius.circular(10),
                                           ),
-                                          child: const Icon(Icons.edit_rounded,
+                                          child: Icon(Icons.edit_rounded,
                                               size: 16, color: Theme.of(context).primaryColor),
                                         ),
                                       ),

@@ -47,9 +47,6 @@ class _HomeScreenState extends State<HomeScreen> {
     task.isCompleted = true;
     task.save();
 
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -83,8 +80,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _deleteTask(Task task) async {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final tasksBox = Hive.box<Task>('tasks');
     
     final taskData = {
