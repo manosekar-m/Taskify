@@ -423,6 +423,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     onDaySelected: (selected, focused) {
                       setState(() {
                         _selectedDay = selected;
+                        // Redirect to next/previous month if a date from that month is selected
+                        if (selected.month != _focusedDay.month) {
+                          _focusedDay = selected;
+                        } else {
+                          _focusedDay = focused;
+                        }
+                      });
+                    },
+                    onPageChanged: (focused) {
+                      setState(() {
                         _focusedDay = focused;
                       });
                     },

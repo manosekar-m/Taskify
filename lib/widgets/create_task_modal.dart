@@ -184,7 +184,7 @@ void showCreateTaskModal(BuildContext context, DateTime initialDate, {Task? task
                         final picked = await showDatePicker(
                           context: context,
                           initialDate: selectedDate,
-                          firstDate: DateTime(2020),
+                          firstDate: DateTime.now(),
                           lastDate: DateTime(2030),
                           builder: (context, child) {
                             return Theme(
@@ -230,12 +230,24 @@ void showCreateTaskModal(BuildContext context, DateTime initialDate, {Task? task
                               _buildInputLabel(modalContext, "Start Time"),
                               GestureDetector(
                                 onTap: () => pickTime(true),
-                                child: _buildTimeBox(modalContext, formatTimeDisplay(startTime), Icons.access_time),
+                                child: _buildTimeBox(modalContext, formatTimeDisplay(startTime), Icons.access_time_rounded),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(width: 20),
+                        const SizedBox(width: 15),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 30),
+                          child: Container(
+                            width: 20,
+                            height: 2,
+                            decoration: BoxDecoration(
+                              color: theme.dividerColor,
+                              borderRadius: BorderRadius.circular(1),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 15),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -243,7 +255,7 @@ void showCreateTaskModal(BuildContext context, DateTime initialDate, {Task? task
                               _buildInputLabel(modalContext, "End Time"),
                               GestureDetector(
                                 onTap: () => pickTime(false),
-                                child: _buildTimeBox(modalContext, formatTimeDisplay(endTime), Icons.access_time_filled),
+                                child: _buildTimeBox(modalContext, formatTimeDisplay(endTime), Icons.access_time_filled_rounded),
                               ),
                             ],
                           ),
@@ -262,6 +274,16 @@ void showCreateTaskModal(BuildContext context, DateTime initialDate, {Task? task
                         
                         if (endDt.isBefore(startDt)) {
                           endDt = endDt.add(const Duration(days: 1));
+                        }
+
+                        if (startDt.isBefore(DateTime.now()) && taskToEdit == null) {
+                          ScaffoldMessenger.of(modalContext).showSnackBar(
+                            const SnackBar(
+                              content: Text("Cannot create tasks in the past"),
+                              backgroundColor: Colors.orange,
+                            ),
+                          );
+                          return;
                         }
 
                         final tasksBox = Hive.box<Task>('tasks');
@@ -352,29 +374,29 @@ Widget _buildTimeBox(BuildContext context, String time, IconData icon) {
   final isDark = theme.brightness == Brightness.dark;
   return Container(
     width: double.infinity,
-    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     decoration: BoxDecoration(
-      color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
+      color: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.black.withValues(alpha: 0.04),
       borderRadius: BorderRadius.circular(20),
       border: Border.all(
-        color: theme.dividerColor.withValues(alpha: 0.5),
-        width: 1,
+        color: theme.dividerColor.withValues(alpha: 0.4),
+        width: 1.5,
       ),
     ),
     child: Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(icon, size: 20, color: Colors.blue),
-        const SizedBox(width: 12),
+        Icon(icon, size: 18, color: Colors.blue.withValues(alpha: 0.8)),
+        const SizedBox(width: 8),
         Text(
           time,
           style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
             color: theme.primaryColor,
+            letterSpacing: 0.5,
           ),
         ),
-        const Spacer(),
-        Icon(Icons.keyboard_arrow_down_rounded, size: 20, color: theme.hintColor.withValues(alpha: 0.5)),
       ],
     ),
   );

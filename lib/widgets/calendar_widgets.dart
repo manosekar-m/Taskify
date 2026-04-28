@@ -48,12 +48,14 @@ class OldCalendarView extends StatelessWidget {
   final DateTime focusedDay;
   final DateTime selectedDay;
   final Function(DateTime selectedDay, DateTime focusedDay) onDaySelected;
+  final Function(DateTime focusedDay)? onPageChanged;
 
   const OldCalendarView({
     super.key,
     required this.focusedDay,
     required this.selectedDay,
     required this.onDaySelected,
+    this.onPageChanged,
   });
 
   @override
@@ -67,6 +69,7 @@ class OldCalendarView extends StatelessWidget {
       focusedDay: focusedDay,
       selectedDayPredicate: (day) => isSameDay(selectedDay, day),
       onDaySelected: onDaySelected,
+      onPageChanged: onPageChanged,
       headerVisible: false,
       calendarStyle: CalendarStyle(
         selectedDecoration: BoxDecoration(

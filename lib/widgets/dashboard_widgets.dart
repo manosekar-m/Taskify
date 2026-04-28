@@ -200,48 +200,50 @@ class TaskCard extends StatelessWidget {
         final endTimeStr = format.format(endDateTime);
 
         return Container(
+          margin: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color: theme.cardColor,
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-                blurRadius: 15,
-                offset: const Offset(0, 8),
+                color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
               ),
             ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: BorderRadius.circular(24),
             child: IntrinsicHeight(
               child: Row(
                 children: [
                   Container(
-                    width: 6,
-                    color: isCompleted ? Colors.green : (isLive ? Colors.orange : theme.dividerColor),
+                    width: 5,
+                    decoration: BoxDecoration(
+                      color: isCompleted ? Colors.green : (isLive ? Colors.orange : theme.dividerColor),
+                      borderRadius: const BorderRadius.horizontal(left: Radius.circular(5)),
+                    ),
                   ),
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
                               Container(
-                                width: 44,
-                                height: 44,
+                                width: 40,
+                                height: 40,
                                 decoration: BoxDecoration(
-                                  color: theme.dividerColor.withValues(alpha: 0.5),
-                                  borderRadius: BorderRadius.circular(15),
+                                  color: theme.dividerColor.withValues(alpha: 0.4),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Center(
-                                  child: isCompleted 
-                                    ? const Icon(Icons.check_circle_rounded, color: Colors.green, size: 24)
-                                    : _getTaskIconWidget(task.title, theme.primaryColor),
+                                  child: _getTaskIconWidget(task.title, theme.primaryColor),
                                 ),
                               ),
-                              const SizedBox(width: 15),
+                              const SizedBox(width: 12),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -249,34 +251,34 @@ class TaskCard extends StatelessWidget {
                                     Text(
                                       task.title,
                                       style: TextStyle(
-                                        fontSize: 20,
+                                        fontSize: 18,
                                         fontWeight: FontWeight.bold,
                                         color: isCompleted ? theme.hintColor : theme.primaryColor,
                                         decoration: isCompleted ? TextDecoration.lineThrough : null,
                                       ),
                                     ),
-                                    const SizedBox(height: 6),
+                                    const SizedBox(height: 4),
                                     Row(
                                       children: [
-                                        Icon(Icons.calendar_today, size: 14, color: theme.hintColor.withValues(alpha: 0.8)),
-                                        const SizedBox(width: 6),
+                                        Icon(Icons.calendar_today_rounded, size: 12, color: theme.hintColor.withValues(alpha: 0.6)),
+                                        const SizedBox(width: 4),
                                         Text(
-                                          DateFormat('dd MMM').format(task.startDateTime),
+                                          DateFormat('d MMM').format(task.startDateTime),
                                           style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                            color: theme.hintColor.withValues(alpha: 0.8),
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            color: theme.hintColor.withValues(alpha: 0.6),
                                           ),
                                         ),
-                                        const SizedBox(width: 12),
-                                        Icon(Icons.access_time, size: 14, color: theme.hintColor),
-                                        const SizedBox(width: 6),
+                                        const SizedBox(width: 10),
+                                        Icon(Icons.access_time_rounded, size: 12, color: theme.hintColor.withValues(alpha: 0.6)),
+                                        const SizedBox(width: 4),
                                         Text(
                                           "$startTimeStr - $endTimeStr",
                                           style: TextStyle(
-                                            fontSize: 14,
+                                            fontSize: 12,
                                             fontWeight: FontWeight.w600,
-                                            color: theme.hintColor,
+                                            color: theme.hintColor.withValues(alpha: 0.6),
                                           ),
                                         ),
                                       ],
@@ -287,39 +289,32 @@ class TaskCard extends StatelessWidget {
                               _buildDoneButton(context, isCompleted),
                             ],
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 16),
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              // Left — Duration badge
-                              Expanded(
-                                child: Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                                    decoration: BoxDecoration(
-                                      color: theme.primaryColor.withValues(alpha: 0.05),
-                                      borderRadius: BorderRadius.circular(12),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: theme.dividerColor.withValues(alpha: 0.3),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.timer_outlined, size: 14, color: theme.hintColor),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      task.duration,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: theme.hintColor,
+                                      ),
                                     ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(Icons.timer_outlined, size: 16, color: theme.hintColor),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          task.duration,
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                            color: theme.hintColor,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                  ],
                                 ),
                               ),
-
-                              // Center — Focus button
                               if (!isCompleted)
                                 GestureDetector(
                                   onTap: () => Navigator.push(
@@ -327,21 +322,22 @@ class TaskCard extends StatelessWidget {
                                     MaterialPageRoute(builder: (_) => FocusScreen(task: task)),
                                   ),
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                                     decoration: BoxDecoration(
                                       color: Colors.orange.withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(color: Colors.orange.withValues(alpha: 0.2)),
                                     ),
                                     child: const Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(Icons.play_arrow_rounded, size: 16, color: Colors.orange),
+                                        Icon(Icons.play_arrow_rounded, size: 14, color: Colors.orange),
                                         SizedBox(width: 4),
                                         Text(
                                           "Focus",
                                           style: TextStyle(
                                             fontSize: 12,
-                                            fontWeight: FontWeight.bold,
+                                            fontWeight: FontWeight.w900,
                                             color: Colors.orange,
                                           ),
                                         ),
@@ -349,46 +345,46 @@ class TaskCard extends StatelessWidget {
                                     ),
                                   ),
                                 ),
-
-                              // Right — Status label
-                              Expanded(
-                                child: Align(
-                                  alignment: Alignment.centerRight,
-                                  child: !isCompleted
-                                      ? (isLive
-                                          ? const BlinkingText(
-                                              text: "● LIVE",
-                                              style: TextStyle(
-                                                color: Colors.green,
-                                                fontWeight: FontWeight.w900,
-                                                fontSize: 12,
-                                                letterSpacing: 0.5,
-                                              ),
-                                            )
-                                          : isFuture
-                                              ? Text(
-                                                  "LATER",
-                                                  style: TextStyle(
-                                                    color: theme.hintColor.withValues(alpha: 0.6),
-                                                    fontWeight: FontWeight.w800,
-                                                    fontSize: 12,
-                                                    letterSpacing: 0.5,
-                                                  ),
-                                                )
-                                              : isPast
-                                                  ? const Text(
-                                                      "DONE",
-                                                      style: TextStyle(
-                                                        color: Colors.redAccent,
-                                                        fontWeight: FontWeight.w800,
-                                                        fontSize: 12,
-                                                        letterSpacing: 0.5,
-                                                      ),
-                                                    )
-                                                  : const SizedBox.shrink())
-                                      : const SizedBox.shrink(),
+                              if (isCompleted)
+                                const Text(
+                                  "DONE",
+                                  style: TextStyle(
+                                    color: Colors.green,
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 11,
+                                    letterSpacing: 1,
+                                  ),
+                                )
+                              else if (isLive)
+                                const BlinkingText(
+                                  text: "● LIVE",
+                                  style: TextStyle(
+                                    color: Colors.green,
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 11,
+                                    letterSpacing: 1,
+                                  ),
+                                )
+                              else if (isPast)
+                                const Text(
+                                  "OVERDUE",
+                                  style: TextStyle(
+                                    color: Colors.redAccent,
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 11,
+                                    letterSpacing: 1,
+                                  ),
+                                )
+                              else
+                                Text(
+                                  "UPCOMING",
+                                  style: TextStyle(
+                                    color: theme.hintColor.withValues(alpha: 0.4),
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 11,
+                                    letterSpacing: 1,
+                                  ),
                                 ),
-                              ),
                             ],
                           ),
                         ],
