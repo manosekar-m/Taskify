@@ -111,20 +111,9 @@ void showCreateTaskModal(BuildContext context, DateTime initialDate, {Task? task
                       timePickerTheme: TimePickerThemeData(
                         backgroundColor: isDark ? const Color(0xFF1C1C1E) : Colors.white,
                         hourMinuteShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        hourMinuteColor: WidgetStateProperty.resolveWith((states) {
-                          if (states.contains(WidgetState.selected)) return theme.primaryColor;
-                          return isDark ? Colors.white.withValues(alpha: 0.05) : theme.primaryColor.withValues(alpha: 0.05);
-                        }),
-                        hourMinuteTextColor: WidgetStateProperty.resolveWith((states) {
-                          if (states.contains(WidgetState.selected)) return isDark ? Colors.black : Colors.white;
-                          return theme.primaryColor;
-                        }),
+                        // Selection colors are handled by colorScheme.primary and onPrimary
                         dialBackgroundColor: isDark ? Colors.white.withValues(alpha: 0.05) : theme.primaryColor.withValues(alpha: 0.05),
                         dialHandColor: theme.primaryColor,
-                        dialTextColor: WidgetStateProperty.resolveWith((states) {
-                          if (states.contains(WidgetState.selected)) return isDark ? Colors.black : Colors.white;
-                          return theme.primaryColor;
-                        }),
                         entryModeIconColor: theme.primaryColor,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
                       ),
