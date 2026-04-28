@@ -90,7 +90,12 @@ class _SignupScreenState extends State<SignupScreen> {
                           final exists = usersBox.values.any((u) => u.email == emailController.text);
                           if (exists) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Email already registered. Please login."), backgroundColor: Colors.orangeAccent),
+                              const SnackBar(
+                                content: Text("Email already registered. Please login.", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                backgroundColor: Colors.black,
+                                duration: Duration(seconds: 3),
+                                behavior: SnackBarBehavior.floating,
+                              ),
                             );
                             return;
                           }
@@ -99,7 +104,12 @@ class _SignupScreenState extends State<SignupScreen> {
                           Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Please fill in every detail to sign up"), backgroundColor: Colors.redAccent),
+                            const SnackBar(
+                              content: Text("Please fill in every detail to sign up", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              backgroundColor: Colors.black,
+                              duration: Duration(seconds: 3),
+                              behavior: SnackBarBehavior.floating,
+                            ),
                           );
                         }
                       },

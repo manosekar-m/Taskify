@@ -113,12 +113,22 @@ class _LoginScreenState extends State<LoginScreen> {
                             );
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Invalid email or password"), backgroundColor: Colors.redAccent),
+                              const SnackBar(
+                                content: Text("Invalid email or password", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                backgroundColor: Colors.black,
+                                duration: Duration(seconds: 3),
+                                behavior: SnackBarBehavior.floating,
+                              ),
                             );
                           }
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Please fill in every detail to login"), backgroundColor: Colors.redAccent),
+                            const SnackBar(
+                              content: Text("Please fill in every detail to login", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              backgroundColor: Colors.black,
+                              duration: Duration(seconds: 3),
+                              behavior: SnackBarBehavior.floating,
+                            ),
                           );
                         }
                       },

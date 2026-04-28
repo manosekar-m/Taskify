@@ -93,12 +93,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text(
               "Profile updated successfully!",
-              style: TextStyle(color: isDark ? Colors.white : Colors.black),
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
             ),
-            backgroundColor: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+            backgroundColor: Colors.black,
+            duration: Duration(seconds: 3),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -144,9 +145,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Navigator.pop(context);
                 // ignore: use_build_context_synchronously
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("All data erased successfully", style: TextStyle(color: isDark ? Colors.white : Colors.black)),
-                    backgroundColor: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+                  const SnackBar(
+                    content: Text("All data erased successfully", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    backgroundColor: Colors.black,
+                    duration: Duration(seconds: 3),
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
@@ -647,7 +649,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           Switch(
             value: showRoughNotes,
-            activeThumbColor: Colors.blue,
+            activeThumbColor: theme.primaryColor,
             onChanged: (val) {
               settingsBox.put('showRoughNotes', val);
               setState(() {});

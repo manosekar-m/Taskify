@@ -53,16 +53,16 @@ class _HomeScreenState extends State<HomeScreen> {
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
+        content: const Text(
           "Task completed",
-          style: TextStyle(color: isDark ? Colors.white : Colors.black),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+        backgroundColor: Colors.black,
         behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 7),
+        duration: const Duration(seconds: 3),
         action: SnackBarAction(
           label: "Undo",
-          textColor: theme.primaryColor,
+          textColor: Colors.white,
           onPressed: () {
             task.isCompleted = false;
             task.save();
@@ -72,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
     
-    Future.delayed(const Duration(seconds: 7), () {
+    Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
       }
@@ -106,16 +106,16 @@ class _HomeScreenState extends State<HomeScreen> {
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
+        content: const Text(
           "Task deleted",
-          style: TextStyle(color: isDark ? Colors.white : Colors.black),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+        backgroundColor: Colors.black,
         behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 7),
+        duration: const Duration(seconds: 3),
         action: SnackBarAction(
           label: "Undo",
-          textColor: theme.primaryColor,
+          textColor: Colors.white,
           onPressed: () {
             tasksBox.add(Task(
               title: taskData['title'] as String,
@@ -133,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
 
-    Future.delayed(const Duration(seconds: 7), () {
+    Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
       }
@@ -497,7 +497,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 15),
                           child: Dismissible(
-                            key: Key(task.key?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString() + index.toString()),
+                            key: ValueKey(task.key ?? "${task.startDateTime.toIso8601String()}_${task.title}"),
                             direction: DismissDirection.horizontal,
                             background: _buildSwipeAction(
                               color: theme.primaryColor,

@@ -180,10 +180,10 @@ class _RoughNotesScreenState extends State<RoughNotesScreen> {
               });
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text('Note deleted',
-                    style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black)),
-                backgroundColor: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+                content: const Text('Note deleted',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                backgroundColor: Colors.black,
+                duration: const Duration(seconds: 3),
                 behavior: SnackBarBehavior.floating,
               ));
             },

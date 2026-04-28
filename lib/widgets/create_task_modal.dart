@@ -282,8 +282,10 @@ void showCreateTaskModal(BuildContext context, DateTime initialDate, {Task? task
                         if (startDt.isBefore(DateTime.now()) && taskToEdit == null) {
                           ScaffoldMessenger.of(modalContext).showSnackBar(
                             const SnackBar(
-                              content: Text("Cannot create tasks in the past"),
-                              backgroundColor: Colors.orange,
+                              content: Text("Cannot create tasks in the past", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              backgroundColor: Colors.black,
+                              duration: Duration(seconds: 3),
+                              behavior: SnackBarBehavior.floating,
                             ),
                           );
                           return;
