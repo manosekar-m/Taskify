@@ -312,6 +312,7 @@ void showCreateTaskModal(BuildContext context, DateTime initialDate, {Task? task
                           tasksBox.add(newTask);
                           NotificationService().scheduleTaskNotifications(newTask);
                         } else {
+                          NotificationService().cancelTask(taskToEdit);
                           taskToEdit.title = titleController.text;
                           taskToEdit.startTime = sTimeStr;
                           taskToEdit.endTime = eTimeStr;

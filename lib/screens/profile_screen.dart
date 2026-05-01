@@ -136,6 +136,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           TextButton(
             onPressed: () async {
+              NotificationService().cancelAllNotifications();
               await Hive.box<Task>('tasks').clear();
               if (mounted) {
                 // ignore: use_build_context_synchronously

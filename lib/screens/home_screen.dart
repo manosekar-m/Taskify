@@ -44,6 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _markTaskAsDone(Task task) {
+    NotificationService().cancelTask(task);
     task.isCompleted = true;
     task.save();
 
@@ -63,6 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
           onPressed: () {
             task.isCompleted = false;
             task.save();
+            NotificationService().scheduleTaskNotifications(task);
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
           },
         ),
@@ -112,7 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
           label: "Undo",
           textColor: Colors.white,
           onPressed: () {
-            tasksBox.add(Task(
+            final newTask = Task(
               title: taskData['title'] as String,
               startTime: taskData['startTime'] as String,
               endTime: taskData['endTime'] as String,
@@ -121,7 +123,9 @@ class _HomeScreenState extends State<HomeScreen> {
               startDateTime: taskData['startDateTime'] as DateTime,
               isCompleted: taskData['isCompleted'] as bool,
               endDateTime: taskData['endDateTime'] as DateTime?,
-            ));
+            );
+            tasksBox.add(newTask);
+            NotificationService().scheduleTaskNotifications(newTask);
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
           },
         ),
