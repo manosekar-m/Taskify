@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -12,6 +13,8 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
 
   Future<void> init() async {
+    if (kIsWeb) return;
+    
     tz.initializeTimeZones();
 
     const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/launcher_icon');
@@ -32,10 +35,14 @@ class NotificationService {
       iOS: initializationSettingsDarwin,
     );
 
-    await _notificationsPlugin.initialize(settings: initializationSettings);
+    await (_notificationsPlugin as dynamic).initialize(
+      settings: initializationSettings,
+    );
   }
 
   Future<void> scheduleTaskNotifications(Task task) async {
+    if (kIsWeb) return;
+    
     // Generate a unique base ID for the task using its start time hash
     int baseId = task.startDateTime.millisecondsSinceEpoch ~/ 100000;
 
@@ -64,16 +71,19 @@ class NotificationService {
   }
 
   Future<void> cancelTaskNotifications(int baseId) async {
-    await _notificationsPlugin.cancel(id: baseId);
+    if (kIsWeb) return;
+    await (_notificationsPlugin as dynamic).cancel(id: baseId);
   }
 
   Future<void> cancelTask(Task task) async {
+    if (kIsWeb) return;
     int baseId = task.startDateTime.millisecondsSinceEpoch ~/ 100000;
     await cancelTaskNotifications(baseId);
   }
 
   Future<void> cancelAllNotifications() async {
-    await _notificationsPlugin.cancelAll();
+    if (kIsWeb) return;
+    await (_notificationsPlugin as dynamic).cancelAll();
   }
 
   Future<void> _scheduleNotification({
@@ -82,6 +92,8 @@ class NotificationService {
     required String body,
     required DateTime scheduledDate,
   }) async {
+    if (kIsWeb) return;
+    
     const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'taskify_channel_id',
       'Taskify Alerts',
@@ -95,7 +107,7 @@ class NotificationService {
       iOS: DarwinNotificationDetails(),
     );
 
-    await _notificationsPlugin.zonedSchedule(
+    await (_notificationsPlugin as dynamic).zonedSchedule(
       id: id,
       title: title,
       body: body,

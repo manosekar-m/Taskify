@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import '../models/user.dart';
+import 'package:flutter/services.dart';
+import '../services/hive_service.dart';
 import '../widgets/custom_widgets.dart';
-import 'signup_screen.dart';
 import 'home_screen.dart';
+import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,153 +13,180 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final emailController = TextEditingController();
-  final passController = TextEditingController();
-  bool _obscureText = true;
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _isLoading = false;
+  bool _isPasswordVisible = false;
+
+  void _login() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      HapticFeedback.heavyImpact();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please fill all fields")),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    final user = await HiveService().loginUser(_emailController.text, _passwordController.text);
+    setState(() => _isLoading = false);
+
+    if (user != null) {
+      if (!mounted) return;
+      HapticFeedback.lightImpact();
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
+    } else {
+      if (!mounted) return;
+      HapticFeedback.heavyImpact();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Invalid email or password")),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Container(
-        width: double.infinity,
-        height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            stops: const [0.0, 0.45, 1.0],
-            colors: [
-              theme.scaffoldBackgroundColor,
-              theme.scaffoldBackgroundColor,
-              theme.scaffoldBackgroundColor,
-            ],
+            colors: isDark
+                ? [const Color(0xFF0F0C1B), const Color(0xFF09090B)]
+                : [const Color(0xFFEEF2F6), const Color(0xFFF9FAFC)],
           ),
         ),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: RadialGradient(
-              center: const Alignment(-0.8, -0.8),
-              radius: 1.2,
-              colors: [
-                theme.primaryColor.withValues(alpha: 0.08),
-                Colors.transparent,
-              ],
-            ),
-          ),
-          child: SafeArea(
+        child: SafeArea(
+          child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 30),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 80),
-                    Text(
-                      "Welcome\nBack",
+              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 30),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: theme.primaryColor.withValues(alpha: 0.05),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: theme.primaryColor.withValues(alpha: 0.1),
+                          width: 2,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          "T",
+                          style: TextStyle(
+                            fontSize: 38,
+                            fontWeight: FontWeight.w900,
+                            color: theme.primaryColor,
+                            letterSpacing: -1,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  Center(
+                    child: Text(
+                      "Welcome Back",
                       style: TextStyle(
-                        fontSize: 40,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 32,
+                        fontWeight: FontWeight.w900,
                         color: theme.primaryColor,
-                        height: 1.1,
+                        letterSpacing: -1,
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    Text(
-                      "Login to continue",
+                  ),
+                  const SizedBox(height: 8),
+                  Center(
+                    child: Text(
+                      "Log in to continue your journey",
                       style: TextStyle(
-                        fontSize: 16,
-                        color: theme.hintColor,
+                        fontSize: 15,
                         fontWeight: FontWeight.w500,
+                        color: theme.hintColor,
                       ),
                     ),
-                    const SizedBox(height: 60),
-                    TaskifyTextField(
-                      controller: emailController,
-                      hintText: "Email",
-                      keyboardType: TextInputType.emailAddress,
+                  ),
+                  const SizedBox(height: 50),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 5, bottom: 8),
+                    child: Text(
+                      "Email Address",
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: theme.hintColor),
                     ),
-                    const SizedBox(height: 20),
-                    TaskifyTextField(
-                      controller: passController,
-                      hintText: "Password",
-                      obscureText: _obscureText,
-                      isPasswordField: true,
-                      onSuffixTap: () {
-                        setState(() {
-                          _obscureText = !_obscureText;
-                        });
-                      },
+                  ),
+                  TaskifyTextField(
+                    controller: _emailController,
+                    hintText: "Enter your email",
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  const SizedBox(height: 25),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 5, bottom: 8),
+                    child: Text(
+                      "Password",
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: theme.hintColor),
                     ),
-                    const SizedBox(height: 40),
-                    TaskifyButton(
-                      text: "Login",
-                      onPressed: () {
-                        if (emailController.text.isNotEmpty && passController.text.isNotEmpty) {
-                          final usersBox = Hive.box<User>('users');
-                          final user = usersBox.values.cast<User?>().firstWhere(
-                            (u) => u?.email == emailController.text && u?.password == passController.text,
-                            orElse: () => null,
-                          );
-                          if (user != null) {
-                            Hive.box('session').put('currentUserEmail', emailController.text);
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (_) => const HomeScreen()),
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Invalid email or password", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                backgroundColor: Colors.black,
-                                duration: Duration(seconds: 3),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                          }
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Please fill in every detail to login", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                              backgroundColor: Colors.black,
-                              duration: Duration(seconds: 3),
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 30),
-                    Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "Don't have an account? ",
-                            style: TextStyle(color: theme.hintColor, fontWeight: FontWeight.w500),
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(builder: (_) => const SignupScreen()),
-                              );
-                            },
-                            child: Text(
-                              "Sign Up",
-                              style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ],
+                  ),
+                  TaskifyTextField(
+                    controller: _passwordController,
+                    hintText: "Enter your password",
+                    obscureText: !_isPasswordVisible,
+                    isPasswordField: true,
+                    onSuffixTap: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+                  ),
+                  const SizedBox(height: 45),
+                  _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : TaskifyButton(
+                          text: "Log In",
+                          onPressed: _login,
+                        ),
+                  const SizedBox(height: 35),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Don't have an account? ",
+                        style: TextStyle(
+                          color: theme.hintColor,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 40),
-                  ],
-                ),
+                      GestureDetector(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const SignupScreen()),
+                          );
+                        },
+                        child: Text(
+                          "Sign Up",
+                          style: TextStyle(
+                            color: theme.colorScheme.secondary,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),

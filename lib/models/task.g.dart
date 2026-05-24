@@ -23,14 +23,23 @@ class TaskAdapter extends TypeAdapter<Task> {
       duration: fields[3] as String,
       colorIndex: fields[4] as int,
       startDateTime: fields[5] as DateTime,
-      isCompleted: fields[6] == null ? false : fields[6] as bool,
+      isCompleted: fields[6] as bool,
+      endDateTime: fields[7] as DateTime?,
+      id: fields[8] as String?,
+      userId: fields[9] as String?,
+      description: fields[10] as String?,
+      priority: fields[11] as String,
+      category: fields[12] as String?,
+      isRecurring: fields[13] as bool,
+      recurrencePattern: fields[14] as String?,
+      position: fields[15] as double,
     );
   }
 
   @override
   void write(BinaryWriter writer, Task obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(16)
       ..writeByte(0)
       ..write(obj.title)
       ..writeByte(1)
@@ -44,7 +53,25 @@ class TaskAdapter extends TypeAdapter<Task> {
       ..writeByte(5)
       ..write(obj.startDateTime)
       ..writeByte(6)
-      ..write(obj.isCompleted);
+      ..write(obj.isCompleted)
+      ..writeByte(7)
+      ..write(obj.endDateTime)
+      ..writeByte(8)
+      ..write(obj.id)
+      ..writeByte(9)
+      ..write(obj.userId)
+      ..writeByte(10)
+      ..write(obj.description)
+      ..writeByte(11)
+      ..write(obj.priority)
+      ..writeByte(12)
+      ..write(obj.category)
+      ..writeByte(13)
+      ..write(obj.isRecurring)
+      ..writeByte(14)
+      ..write(obj.recurrencePattern)
+      ..writeByte(15)
+      ..write(obj.position);
   }
 
   @override

@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class TaskifyTextField extends StatelessWidget {
   final TextEditingController controller;
@@ -22,42 +23,73 @@ class TaskifyTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
-    return GlassContainer(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-        child: TextField(
-          controller: controller,
-          obscureText: obscureText,
-          keyboardType: keyboardType,
-          textAlignVertical: TextAlignVertical.center, // Center text vertically
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: theme.primaryColor,
-          ),
-          decoration: InputDecoration(
-            border: InputBorder.none,
-            isDense: false, // Ensure consistent height
-            contentPadding: const EdgeInsets.symmetric(vertical: 15), // Consistent padding
-            hintText: hintText,
-            suffixIcon: isPasswordField
-                ? IconButton(
-                    padding: EdgeInsets.zero, // Remove internal padding
-                    icon: Icon(
-                      obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                      color: theme.hintColor,
-                      size: 20,
-                    ),
-                    onPressed: onSuffixTap,
-                  )
-                : null,
-            hintStyle: TextStyle(
-              color: theme.hintColor,
-              fontWeight: FontWeight.w400,
+    return Focus(
+      child: Builder(
+        builder: (BuildContext focusContext) {
+          final isFocused = Focus.of(focusContext).hasFocus;
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: isFocused
+                    ? theme.colorScheme.secondary
+                    : (isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05)),
+                width: isFocused ? 1.8 : 1.2,
+              ),
+              boxShadow: isFocused ? [
+                BoxShadow(
+                  color: theme.colorScheme.secondary.withValues(alpha: 0.15),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                )
+              ] : [],
             ),
-          ),
-        ),
+            child: GlassContainer(
+              borderRadius: 20,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                child: TextField(
+                  controller: controller,
+                  obscureText: obscureText,
+                  keyboardType: keyboardType,
+                  textAlignVertical: TextAlignVertical.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: theme.primaryColor,
+                  ),
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    isDense: false,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                    hintText: hintText,
+                    suffixIcon: isPasswordField
+                        ? IconButton(
+                            padding: EdgeInsets.zero,
+                            icon: Icon(
+                              obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                              color: theme.hintColor,
+                              size: 20,
+                            ),
+                            onPressed: () {
+                              HapticFeedback.lightImpact();
+                              onSuffixTap?.call();
+                            },
+                          )
+                        : null,
+                    hintStyle: TextStyle(
+                      color: theme.hintColor.withValues(alpha: 0.5),
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
       ),
     );
   }
@@ -84,22 +116,40 @@ class TaskifyButton extends StatelessWidget {
 
     return SizedBox(
       width: double.infinity,
-      height: 60,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color ?? theme.primaryColor,
-          foregroundColor: textColor ?? (isDark ? Colors.black : Colors.white),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
-          elevation: 0,
+      height: 56,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: (color ?? theme.primaryColor).withValues(alpha: 0.25),
+              blurRadius: 15,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+        child: ElevatedButton(
+          onPressed: () {
+            HapticFeedback.mediumImpact();
+            onPressed();
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: color ?? theme.primaryColor,
+            foregroundColor: textColor ?? (isDark ? Colors.black : Colors.white),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(28),
+            ),
+            elevation: 0,
+            padding: EdgeInsets.zero,
+          ),
+          child: Text(
+            text,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.5,
+            ),
           ),
         ),
       ),
@@ -116,7 +166,7 @@ class GlassContainer extends StatelessWidget {
   const GlassContainer({
     super.key,
     required this.child,
-    this.blur = 15,
+    this.blur = 20,
     this.opacity = 0.5,
     this.borderRadius = 25,
   });
@@ -131,11 +181,11 @@ class GlassContainer extends StatelessWidget {
         filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
         child: Container(
           decoration: BoxDecoration(
-            color: (isDark ? Colors.white : Colors.black).withValues(alpha: isDark ? 0.05 : 0.03),
+            color: (isDark ? Colors.white : Colors.black).withValues(alpha: isDark ? 0.04 : 0.02),
             borderRadius: BorderRadius.circular(borderRadius),
             border: Border.all(
-              color: (isDark ? Colors.white : Colors.black).withValues(alpha: isDark ? 0.1 : 0.05),
-              width: 1.5,
+              color: (isDark ? Colors.white : Colors.black).withValues(alpha: isDark ? 0.08 : 0.04),
+              width: 1.0,
             ),
           ),
           child: child,

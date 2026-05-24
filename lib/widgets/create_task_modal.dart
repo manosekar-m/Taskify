@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../models/task.dart';
+import '../models/subtask.dart';
 import '../services/notification_service.dart';
+import '../services/hive_service.dart';
 import 'custom_widgets.dart';
 
-void showCreateTaskModal(BuildContext context, DateTime initialDate, {Task? taskToEdit, String? initialTimeStr}) {
+Future<void> showCreateTaskModal(BuildContext context, DateTime initialDate, {Task? taskToEdit, String? initialTimeStr}) async {
   final theme = Theme.of(context);
   final isDark = theme.brightness == Brightness.dark;
   final settingsBox = Hive.box('settings');
@@ -46,8 +50,20 @@ void showCreateTaskModal(BuildContext context, DateTime initialDate, {Task? task
   }
 
   String durationStr = taskToEdit?.duration ?? (initialTimeStr != null ? "1 hr" : "0 Min");
+  String selectedPriority = taskToEdit?.priority ?? 'Medium';
+  String? selectedCategory = taskToEdit?.category;
+  bool isRecurring = taskToEdit?.isRecurring ?? false;
+  String? recurrencePattern = taskToEdit?.recurrencePattern;
+  List<Subtask> subtasks = [];
+  bool isLoadingSubtasks = false;
+  final stt.SpeechToText speech = stt.SpeechToText();
+  bool isListening = false;
 
-  showModalBottomSheet(
+  final categories = ['Work', 'Personal', 'Shopping', 'Health', 'Finance', 'Other'];
+  final priorities = ['Low', 'Medium', 'High'];
+  final recurrencePatterns = ['Daily', 'Weekly', 'Monthly'];
+
+  await showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
@@ -66,30 +82,30 @@ void showCreateTaskModal(BuildContext context, DateTime initialDate, {Task? task
         ),
         child: StatefulBuilder(
           builder: (modalContext, setModalState) {
-            void calculateDuration() {
-              if (startTime != null && endTime != null) {
-                final startMinutes = startTime!.hour * 60 + startTime!.minute;
-                var endMinutes = endTime!.hour * 60 + endTime!.minute;
-
-                if (endMinutes < startMinutes) {
-                  endMinutes += 24 * 60;
-                }
-
-                final diff = endMinutes - startMinutes;
-                final hours = diff ~/ 60;
-                final minutes = diff % 60;
-
-                if (hours > 0) {
-                  durationStr = "$hours hr ${minutes > 0 ? '$minutes min' : ''}";
+            // Helper functions moved out of the dynamic build loop where possible
+            void onTimePicked(bool isStart, TimeOfDay picked) {
+              setModalState(() {
+                if (isStart) {
+                  startTime = picked;
                 } else {
-                  durationStr = "$minutes Min";
+                  endTime = picked;
                 }
-              }
+                
+                if (startTime != null && endTime != null) {
+                  final startMinutes = startTime!.hour * 60 + startTime!.minute;
+                  var endMinutes = endTime!.hour * 60 + endTime!.minute;
+                  if (endMinutes < startMinutes) endMinutes += 24 * 60;
+                  final diff = endMinutes - startMinutes;
+                  final hours = diff ~/ 60;
+                  final minutes = diff % 60;
+                  durationStr = hours > 0 ? "$hours hr ${minutes > 0 ? '$minutes min' : ''}" : "$minutes Min";
+                }
+              });
             }
 
             Future<void> pickTime(bool isStart) async {
               final picked = await showTimePicker(
-                context: context, // Use root context for full screen constraints
+                context: context,
                 initialTime: isStart ? (startTime ?? TimeOfDay.now()) : (endTime ?? TimeOfDay.now()),
                 builder: (context, child) {
                   return Theme(
@@ -104,37 +120,24 @@ void showCreateTaskModal(BuildContext context, DateTime initialDate, {Task? task
                         surface: isDark ? const Color(0xFF1C1C1E) : Colors.white,
                         onSurface: theme.primaryColor,
                       ),
-                      dialogTheme: DialogThemeData(
-                        backgroundColor: isDark ? const Color(0xFF1C1C1E) : Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-                      ),
-                      timePickerTheme: TimePickerThemeData(
-                        backgroundColor: isDark ? const Color(0xFF1C1C1E) : Colors.white,
-                        hourMinuteShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        // Selection colors are handled by colorScheme.primary and onPrimary
-                        dialBackgroundColor: isDark ? Colors.white.withValues(alpha: 0.05) : theme.primaryColor.withValues(alpha: 0.05),
-                        dialHandColor: theme.primaryColor,
-                        entryModeIconColor: theme.primaryColor,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-                      ),
                     ),
-                    child: MediaQuery(
-                      data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(1.0)),
-                      child: child!,
-                    ),
+                    child: child!,
                   );
                 },
               );
-              if (picked != null) {
-                setModalState(() {
-                  if (isStart) {
-                    startTime = picked;
-                  } else {
-                    endTime = picked;
-                  }
-                  calculateDuration();
-                });
-              }
+              if (picked != null) onTimePicked(isStart, picked);
+            }
+
+            if (taskToEdit != null && subtasks.isEmpty && !isLoadingSubtasks) {
+              isLoadingSubtasks = true;
+              HiveService().getSubtasks(taskToEdit.id!).then((list) {
+                if (modalContext.mounted) {
+                  setModalState(() {
+                    subtasks = list;
+                    isLoadingSubtasks = false;
+                  });
+                }
+              });
             }
 
             String formatTimeDisplay(TimeOfDay? time) {
@@ -172,7 +175,52 @@ void showCreateTaskModal(BuildContext context, DateTime initialDate, {Task? task
                   ),
                   const SizedBox(height: 30),
                   _buildInputLabel(modalContext, "Task Title"),
-                  _buildLightTextField(modalContext, titleController, "Task Title (e.g. Sync)"),
+                  Row(
+                    children: [
+                      Expanded(child: _buildLightTextField(modalContext, titleController, "Task Title (e.g. Sync)")),
+                      const SizedBox(width: 10),
+                      GestureDetector(
+                        onTap: () async {
+                          HapticFeedback.mediumImpact();
+                          if (!isListening) {
+                            bool available = await speech.initialize();
+                            if (available) {
+                              setModalState(() => isListening = true);
+                              speech.listen(onResult: (val) {
+                                setModalState(() {
+                                  titleController.text = val.recognizedWords;
+                                  if (val.finalResult) isListening = false;
+                                });
+                              });
+                            }
+                          } else {
+                            setModalState(() => isListening = false);
+                            speech.stop();
+                          }
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: isListening ? const Color(0xFFEF4444) : theme.primaryColor,
+                            borderRadius: BorderRadius.circular(15),
+                            boxShadow: isListening ? [
+                              BoxShadow(
+                                color: const Color(0xFFEF4444).withValues(alpha: 0.4),
+                                blurRadius: 12,
+                                spreadRadius: 4,
+                              )
+                            ] : [],
+                          ),
+                          child: Icon(
+                            isListening ? Icons.mic : Icons.mic_none,
+                            color: isListening ? Colors.white : (isDark ? Colors.black : Colors.white),
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   
                   if (initialTimeStr == null) ...[
                     const SizedBox(height: 25),
@@ -270,6 +318,159 @@ void showCreateTaskModal(BuildContext context, DateTime initialDate, {Task? task
                     ),
                   ],
                   
+                  const SizedBox(height: 25),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildInputLabel(modalContext, "Priority"),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 15),
+                              decoration: BoxDecoration(
+                                color: theme.dividerColor,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  value: selectedPriority,
+                                  isExpanded: true,
+                                  items: priorities.map((p) => DropdownMenuItem(
+                                    value: p,
+                                    child: Text(p, style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold)),
+                                  )).toList(),
+                                  onChanged: (val) => setModalState(() => selectedPriority = val!),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 15),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildInputLabel(modalContext, "Category"),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 15),
+                              decoration: BoxDecoration(
+                                color: theme.dividerColor,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  value: selectedCategory,
+                                  hint: Text("None", style: TextStyle(color: theme.hintColor)),
+                                  isExpanded: true,
+                                  items: categories.map((c) => DropdownMenuItem(
+                                    value: c,
+                                    child: Text(c, style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold)),
+                                  )).toList(),
+                                  onChanged: (val) => setModalState(() => selectedCategory = val),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 25),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildInputLabel(modalContext, "Recurring Task"),
+                      Switch(
+                        value: isRecurring,
+                        onChanged: (val) => setModalState(() => isRecurring = val),
+                        activeThumbColor: theme.primaryColor,
+                      ),
+                    ],
+                  ),
+                  if (isRecurring)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 15),
+                      decoration: BoxDecoration(
+                        color: theme.dividerColor,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: recurrencePattern,
+                          hint: Text("Select Frequency", style: TextStyle(color: theme.hintColor)),
+                          isExpanded: true,
+                          items: recurrencePatterns.map((p) => DropdownMenuItem(
+                            value: p,
+                            child: Text(p, style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold)),
+                          )).toList(),
+                          onChanged: (val) => setModalState(() => recurrencePattern = val),
+                        ),
+                      ),
+                    ),
+
+                  const SizedBox(height: 25),
+                  _buildInputLabel(modalContext, "Subtasks"),
+                  if (isLoadingSubtasks)
+                    const Center(child: CircularProgressIndicator())
+                  else
+                    Column(
+                      children: [
+                        ...subtasks.map((s) => Row(
+                          children: [
+                            Checkbox(
+                              value: s.isCompleted,
+                              onChanged: (val) {
+                                setModalState(() => s.isCompleted = val!);
+                                if (s.id != null) {
+                                  HiveService().updateSubtask(s);
+                                }
+                              },
+                              activeColor: theme.primaryColor,
+                            ),
+                            Expanded(child: Text(s.title, style: TextStyle(color: theme.primaryColor))),
+                            IconButton(
+                              icon: const Icon(Icons.close, size: 18),
+                              onPressed: () {
+                                setModalState(() => subtasks.remove(s));
+                                HiveService().deleteSubtask(s.id!);
+                              },
+                            ),
+                          ],
+                        )),
+                        TextButton.icon(
+                          onPressed: () async {
+                            final controller = TextEditingController();
+                            await showDialog(
+                              context: modalContext,
+                              builder: (context) => AlertDialog(
+                                title: const Text("New Subtask"),
+                                content: TextField(controller: controller, autofocus: true),
+                                actions: [
+                                  TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+                                  TextButton(onPressed: () => Navigator.pop(context, controller.text), child: const Text("Add")),
+                                ],
+                              ),
+                            ).then((val) async {
+                              if (val != null && val.toString().isNotEmpty) {
+                                final s = Subtask(taskId: taskToEdit?.id ?? '', title: val.toString());
+                                if (taskToEdit != null) {
+                                  final saved = await HiveService().createSubtask(s);
+                                  setModalState(() => subtasks.add(saved));
+                                } else {
+                                  setModalState(() => subtasks.add(s));
+                                }
+                              }
+                            });
+                          },
+                          icon: const Icon(Icons.add),
+                          label: const Text("Add Subtask"),
+                        ),
+                      ],
+                    ),
+                  
                   const SizedBox(height: 40),
                   TaskifyButton(
                     text: taskToEdit == null ? "Add Task" : "Update Task",
@@ -294,8 +495,6 @@ void showCreateTaskModal(BuildContext context, DateTime initialDate, {Task? task
                           return;
                         }
 
-                        final tasksBox = Hive.box<Task>('tasks');
-                        
                         final sTimeStr = DateFormat('h:mm a').format(startDt);
                         final eTimeStr = DateFormat('h:mm a').format(endDt);
 
@@ -305,12 +504,21 @@ void showCreateTaskModal(BuildContext context, DateTime initialDate, {Task? task
                             startTime: sTimeStr,
                             endTime: eTimeStr,
                             duration: durationStr,
-                            colorIndex: tasksBox.length % 5,
+                            colorIndex: DateTime.now().millisecond % 5,
                             startDateTime: startDt,
                             endDateTime: endDt,
+                            priority: selectedPriority,
+                            category: selectedCategory,
+                            isRecurring: isRecurring,
+                            recurrencePattern: recurrencePattern,
                           );
-                          tasksBox.add(newTask);
-                          NotificationService().scheduleTaskNotifications(newTask);
+                          final savedTask = await HiveService().createTask(newTask);
+                          // Save subtasks if any
+                          for (var s in subtasks) {
+                            s.taskId = savedTask.id!;
+                            await HiveService().createSubtask(s);
+                          }
+                          NotificationService().scheduleTaskNotifications(savedTask);
                         } else {
                           NotificationService().cancelTask(taskToEdit);
                           taskToEdit.title = titleController.text;
@@ -319,7 +527,13 @@ void showCreateTaskModal(BuildContext context, DateTime initialDate, {Task? task
                           taskToEdit.duration = durationStr;
                           taskToEdit.startDateTime = startDt;
                           taskToEdit.endDateTime = endDt;
-                          await taskToEdit.save();
+                          taskToEdit.priority = selectedPriority;
+                          taskToEdit.category = selectedCategory;
+                          taskToEdit.isRecurring = isRecurring;
+                          taskToEdit.recurrencePattern = recurrencePattern;
+                          
+                          await HiveService().updateTask(taskToEdit);
+                          // Subtasks are handled individually or we can sync them here
                           NotificationService().scheduleTaskNotifications(taskToEdit);
                         }
                         if (modalContext.mounted) Navigator.pop(modalContext);
@@ -327,7 +541,7 @@ void showCreateTaskModal(BuildContext context, DateTime initialDate, {Task? task
                         ScaffoldMessenger.of(modalContext).showSnackBar(
                           const SnackBar(
                             content: Text("Please fill all details to proceed"),
-                            backgroundColor: Colors.redAccent,
+                            backgroundColor: Color(0xFF1A1A1A),
                           ),
                         );
                       }

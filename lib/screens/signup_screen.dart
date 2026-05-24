@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import '../models/user.dart';
+import 'package:flutter/services.dart';
+import '../services/hive_service.dart';
 import '../widgets/custom_widgets.dart';
-import 'login_screen.dart';
 import 'home_screen.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -13,123 +12,179 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
-  final nameController = TextEditingController();
-  final emailController = TextEditingController();
-  final passController = TextEditingController();
-  bool _obscureText = true;
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _isLoading = false;
+  bool _isPasswordVisible = false;
+
+  void _signup() async {
+    if (_nameController.text.isEmpty || _emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      HapticFeedback.heavyImpact();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please fill all fields")),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    await HiveService().registerUser(
+      _nameController.text,
+      _emailController.text,
+      _passwordController.text,
+    );
+    setState(() => _isLoading = false);
+
+    if (!mounted) return;
+    HapticFeedback.lightImpact();
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const HomeScreen()),
+      (route) => false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        color: theme.scaffoldBackgroundColor,
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: RadialGradient(
-              center: const Alignment(-0.8, -0.8),
-              radius: 1.2,
-              colors: [
-                theme.primaryColor.withValues(alpha: 0.08),
-                Colors.transparent,
-              ],
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: CircleAvatar(
+            backgroundColor: theme.cardColor,
+            child: IconButton(
+              icon: Icon(Icons.arrow_back_ios_new_rounded, size: 16, color: theme.primaryColor),
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                Navigator.pop(context);
+              },
             ),
           ),
-          child: SafeArea(
+        ),
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: isDark
+                ? [const Color(0xFF0F0C1B), const Color(0xFF09090B)]
+                : [const Color(0xFFEEF2F6), const Color(0xFFF9FAFC)],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 30),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 70),
-                    Text(
-                      "Create\nAccount",
+              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Text(
+                      "Create Account",
                       style: TextStyle(
-                        fontSize: 40,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 32,
+                        fontWeight: FontWeight.w900,
                         color: theme.primaryColor,
-                        height: 1.1,
+                        letterSpacing: -1,
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    Text(
-                      "Sign up to get started",
+                  ),
+                  const SizedBox(height: 8),
+                  Center(
+                    child: Text(
+                      "Join Taskify and stay organized",
                       style: TextStyle(
-                        fontSize: 16,
-                        color: theme.hintColor,
+                        fontSize: 15,
                         fontWeight: FontWeight.w500,
+                        color: theme.hintColor,
                       ),
                     ),
-                    const SizedBox(height: 40),
-                    TaskifyTextField(controller: nameController, hintText: "Full Name"),
-                    const SizedBox(height: 20),
-                    TaskifyTextField(controller: emailController, hintText: "Email", keyboardType: TextInputType.emailAddress),
-                    const SizedBox(height: 20),
-                    TaskifyTextField(
-                      controller: passController,
-                      hintText: "Password",
-                      obscureText: _obscureText,
-                      isPasswordField: true,
-                      onSuffixTap: () => setState(() => _obscureText = !_obscureText),
+                  ),
+                  const SizedBox(height: 45),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 5, bottom: 8),
+                    child: Text(
+                      "Full Name",
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: theme.hintColor),
                     ),
-                    const SizedBox(height: 40),
-                    TaskifyButton(
-                      text: "Sign Up",
-                      onPressed: () {
-                        if (nameController.text.isNotEmpty &&
-                            emailController.text.isNotEmpty &&
-                            passController.text.isNotEmpty) {
-                          final usersBox = Hive.box<User>('users');
-                          final exists = usersBox.values.any((u) => u.email == emailController.text);
-                          if (exists) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Email already registered. Please login.", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                backgroundColor: Colors.black,
-                                duration: Duration(seconds: 3),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                            return;
-                          }
-                          usersBox.add(User(name: nameController.text, email: emailController.text, password: passController.text));
-                          Hive.box('session').put('currentUserEmail', emailController.text);
-                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Please fill in every detail to sign up", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                              backgroundColor: Colors.black,
-                              duration: Duration(seconds: 3),
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
-                        }
-                      },
+                  ),
+                  TaskifyTextField(
+                    controller: _nameController,
+                    hintText: "Enter your name",
+                    keyboardType: TextInputType.name,
+                  ),
+                  const SizedBox(height: 25),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 5, bottom: 8),
+                    child: Text(
+                      "Email Address",
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: theme.hintColor),
                     ),
-                    const SizedBox(height: 30),
-                    Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text("Already have an account? ", style: TextStyle(color: theme.hintColor, fontWeight: FontWeight.w500)),
-                          GestureDetector(
-                            onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen())),
-                            child: Text("Login", style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold)),
+                  ),
+                  TaskifyTextField(
+                    controller: _emailController,
+                    hintText: "Enter your email",
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  const SizedBox(height: 25),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 5, bottom: 8),
+                    child: Text(
+                      "Password",
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: theme.hintColor),
+                    ),
+                  ),
+                  TaskifyTextField(
+                    controller: _passwordController,
+                    hintText: "Create a password",
+                    obscureText: !_isPasswordVisible,
+                    isPasswordField: true,
+                    onSuffixTap: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+                  ),
+                  const SizedBox(height: 45),
+                  _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : TaskifyButton(
+                          text: "Sign Up",
+                          onPressed: _signup,
+                        ),
+                  const SizedBox(height: 35),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Already have an account? ",
+                        style: TextStyle(
+                          color: theme.hintColor,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          Navigator.pop(context);
+                        },
+                        child: Text(
+                          "Log In",
+                          style: TextStyle(
+                            color: theme.colorScheme.secondary,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14,
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 40),
-                  ],
-                ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),

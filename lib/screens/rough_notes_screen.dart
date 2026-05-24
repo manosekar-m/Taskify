@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import '../models/note.dart';
+import '../services/hive_service.dart';
 import '../widgets/dashboard_widgets.dart';
 
 class RoughNotesScreen extends StatefulWidget {
@@ -10,35 +11,32 @@ class RoughNotesScreen extends StatefulWidget {
 }
 
 class _RoughNotesScreenState extends State<RoughNotesScreen> {
-  late Box _box;
-  List<Map<String, dynamic>> _notes = [];
+  List<Note> _notes = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _box = Hive.box('settings');
-    _loadNotes();
+    _fetchNotes();
   }
 
-  void _loadNotes() {
-    final raw = _box.get('roughNotesList');
-    if (raw != null && raw is List) {
+  Future<void> _fetchNotes() async {
+    setState(() => _isLoading = true);
+    try {
+      final list = await HiveService().getNotes();
       setState(() {
-        _notes = List<Map<String, dynamic>>.from(
-          raw.map((e) => Map<String, dynamic>.from(e as Map)),
-        );
+        _notes = list;
+        _isLoading = false;
       });
+    } catch (e) {
+      setState(() => _isLoading = false);
     }
   }
 
-  void _saveNotes() {
-    _box.put('roughNotesList', _notes.map((n) => Map<String, dynamic>.from(n)).toList());
-  }
-
-  void _openNoteDialog({Map<String, dynamic>? existing, int? index}) {
+  void _openNoteDialog({Note? existing, int? index}) {
     final theme = Theme.of(context);
-    final titleCtrl = TextEditingController(text: existing?['title'] ?? '');
-    final contentCtrl = TextEditingController(text: existing?['content'] ?? '');
+    final titleCtrl = TextEditingController(text: existing?.title ?? '');
+    final contentCtrl = TextEditingController(text: existing?.content ?? '');
     final isEdit = existing != null;
 
     showModalBottomSheet(
@@ -94,26 +92,26 @@ class _RoughNotesScreenState extends State<RoughNotesScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
                       elevation: 0,
                     ),
-                    onPressed: () {
+                    onPressed: () async {
                       final title = titleCtrl.text.trim();
                       final content = contentCtrl.text.trim();
                       if (title.isEmpty && content.isEmpty) return;
 
-                      setState(() {
-                        final note = {
-                          'title': title.isNotEmpty ? title : 'Untitled',
-                          'content': content,
-                          'createdAt': existing?['createdAt'] ??
-                              DateTime.now().millisecondsSinceEpoch,
-                          'updatedAt': DateTime.now().millisecondsSinceEpoch,
-                        };
-                        if (isEdit && index != null) {
-                          _notes[index] = note;
-                        } else {
-                          _notes.insert(0, note);
-                        }
-                        _saveNotes();
-                      });
+                      final note = Note(
+                        id: existing?.id,
+                        title: title.isNotEmpty ? title : 'Untitled',
+                        content: content,
+                        createdAt: existing?.createdAt ?? DateTime.now(),
+                        updatedAt: DateTime.now(),
+                      );
+
+                      if (isEdit) {
+                        await HiveService().updateNote(note);
+                      } else {
+                        await HiveService().createNote(note);
+                      }
+                      _fetchNotes();
+                      if (!ctx.mounted) return;
                       Navigator.pop(ctx);
                     },
                     child: Text(
@@ -172,12 +170,11 @@ class _RoughNotesScreenState extends State<RoughNotesScreen> {
                 style: TextStyle(color: theme.hintColor, fontWeight: FontWeight.bold)),
           ),
           TextButton(
-            onPressed: () {
-              setState(() {
-                _notes.removeAt(index);
-                _saveNotes();
-              });
+            onPressed: () async {
               Navigator.pop(ctx);
+              await HiveService().deleteNote(_notes[index].id!);
+              _fetchNotes();
+              if (!mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                 content: const Text('Note deleted',
                     style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -194,8 +191,7 @@ class _RoughNotesScreenState extends State<RoughNotesScreen> {
     );
   }
 
-  String _formatDate(int ms) {
-    final dt = DateTime.fromMillisecondsSinceEpoch(ms);
+  String _formatDate(DateTime dt) {
     final months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     final h = dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
     final m = dt.minute.toString().padLeft(2, '0');
@@ -238,7 +234,9 @@ class _RoughNotesScreenState extends State<RoughNotesScreen> {
 
             // Notes list
             Expanded(
-              child: _notes.isEmpty
+              child: _isLoading 
+                ? const Center(child: CircularProgressIndicator())
+                : _notes.isEmpty
                   ? Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -263,99 +261,109 @@ class _RoughNotesScreenState extends State<RoughNotesScreen> {
                     )
                   : ListView.builder(
                       padding: const EdgeInsets.fromLTRB(25, 10, 25, 100),
-                      itemCount: _notes.length,
                       itemBuilder: (context, index) {
                         final note = _notes[index];
+                        final List<Color> pastelColors = [
+                          const Color(0xFFE3F2FD), // Blue
+                          const Color(0xFFE8F5E9), // Green
+                          const Color(0xFFFFF3E0), // Orange
+                          const Color(0xFFF3E5F5), // Purple
+                          const Color(0xFFFCE4EC), // Pink
+                          const Color(0xFFE0F2F1), // Teal
+                        ];
+                        final Color noteColor = pastelColors[index % pastelColors.length];
+                        final bool isDark = theme.brightness == Brightness.dark;
+
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 14),
+                          padding: const EdgeInsets.only(bottom: 16),
                           child: Container(
                             decoration: BoxDecoration(
-                              color: theme.cardColor,
-                              borderRadius: BorderRadius.circular(22),
+                              color: isDark ? theme.cardColor : noteColor,
+                              borderRadius: BorderRadius.circular(24),
+                              border: isDark ? Border.all(color: theme.dividerColor) : null,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.04),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 4),
+                                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.08),
+                                  blurRadius: 15,
+                                  offset: const Offset(0, 8),
                                 ),
                               ],
                             ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(20),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                            child: IntrinsicHeight(
+                              child: Row(
                                 children: [
-                                  Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          note['title'] ?? 'Untitled',
-                                          style: TextStyle(
-                                            fontSize: 17,
-                                            fontWeight: FontWeight.bold,
-                                            color: theme.primaryColor,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      // Edit button
-                                      GestureDetector(
-                                        onTap: () => _openNoteDialog(
-                                            existing: note, index: index),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(8),
-                                          decoration: BoxDecoration(
-                                            color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                                            borderRadius: BorderRadius.circular(10),
-                                          ),
-                                          child: Icon(Icons.edit_rounded,
-                                              size: 16, color: Theme.of(context).primaryColor),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      // Delete button
-                                      GestureDetector(
-                                        onTap: () => _deleteNote(index),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(8),
-                                          decoration: BoxDecoration(
-                                            color: Colors.redAccent.withValues(alpha: 0.1),
-                                            borderRadius: BorderRadius.circular(10),
-                                          ),
-                                          child: const Icon(Icons.delete_rounded,
-                                              size: 16, color: Colors.redAccent),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  if ((note['content'] as String).isNotEmpty) ...[
-                                    const SizedBox(height: 10),
-                                    Text(
-                                      note['content'],
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: theme.hintColor,
-                                        height: 1.5,
-                                      ),
-                                      maxLines: 4,
-                                      overflow: TextOverflow.ellipsis,
+                                  Container(
+                                    width: 8,
+                                    decoration: BoxDecoration(
+                                      color: theme.primaryColor.withValues(alpha: 0.3),
+                                      borderRadius: const BorderRadius.horizontal(left: Radius.circular(24)),
                                     ),
-                                  ],
-                                  const SizedBox(height: 12),
-                                  Row(
-                                    children: [
-                                      Icon(Icons.access_time,
-                                          size: 12, color: theme.hintColor.withValues(alpha: 0.5)),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        _formatDate(note['updatedAt'] ?? note['createdAt'] ?? 0),
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: theme.hintColor.withValues(alpha: 0.5),
-                                        ),
+                                  ),
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(22),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  note.title,
+                                                  style: TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.w900,
+                                                    color: isDark ? theme.primaryColor : Colors.black87,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 10),
+                                              _noteActionBtn(
+                                                icon: Icons.edit_rounded,
+                                                color: theme.primaryColor,
+                                                onTap: () => _openNoteDialog(existing: note, index: index),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              _noteActionBtn(
+                                                icon: Icons.delete_rounded,
+                                                color: Colors.redAccent,
+                                                onTap: () => _deleteNote(index),
+                                              ),
+                                            ],
+                                          ),
+                                          if (note.content.isNotEmpty) ...[
+                                            const SizedBox(height: 12),
+                                            Text(
+                                              note.content,
+                                              style: TextStyle(
+                                                fontSize: 15,
+                                                color: isDark ? theme.hintColor : Colors.black54,
+                                                height: 1.6,
+                                              ),
+                                              maxLines: 5,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
+                                          const SizedBox(height: 18),
+                                          Row(
+                                            children: [
+                                              Icon(Icons.access_time_filled_rounded,
+                                                  size: 14, color: (isDark ? theme.hintColor : Colors.black45).withValues(alpha: 0.5)),
+                                              const SizedBox(width: 6),
+                                              Text(
+                                                _formatDate(note.updatedAt),
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: (isDark ? theme.hintColor : Colors.black45).withValues(alpha: 0.5),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
                                       ),
-                                    ],
+                                    ),
                                   ),
                                 ],
                               ),
@@ -377,6 +385,19 @@ class _RoughNotesScreenState extends State<RoughNotesScreen> {
         icon: const Icon(Icons.add),
         label: const Text('Add Note', style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 4,
+      ),
+    );
+  }
+  Widget _noteActionBtn({required IconData icon, required Color color, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, size: 16, color: color),
       ),
     );
   }

@@ -18,12 +18,22 @@ dependencies:
   table_calendar: ^3.2.0
   timezone: ^0.11.0
   url_launcher: ^6.3.1
+  uuid: ^4.5.1
   flutter_native_splash: ^2.4.4
+  local_auth: ^3.0.1
+  speech_to_text: ^7.3.0
+  pdf: ^3.12.0
+  printing: ^5.14.3
+  fl_chart: ^1.2.0
+  audioplayers: ^6.6.0
+  flutter_dotenv: ^6.0.1
+  google_fonts: ^6.2.1
 
 flutter:
   uses-material-design: true
   assets:
     - assets/
+    - .env
 
 dev_dependencies:
   flutter_test:
