@@ -26,14 +26,13 @@ dependencies:
   printing: ^5.14.3
   fl_chart: ^1.2.0
   audioplayers: ^6.6.0
-  flutter_dotenv: ^6.0.1
   google_fonts: ^6.2.1
 
 flutter:
   uses-material-design: true
   assets:
     - assets/
-    - .env
+
 
 dev_dependencies:
   flutter_test:
