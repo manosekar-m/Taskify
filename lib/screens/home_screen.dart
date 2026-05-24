@@ -381,16 +381,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF0D0D0D), Color(0xFF3A3A3A)],
+          colors: [Color(0xFF4338CA), Color(0xFF7C3AED)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).primaryColor.withValues(alpha: 0.35),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
+            color: const Color(0xFF5B5BD6).withValues(alpha: 0.40),
+            blurRadius: 28,
+            offset: const Offset(0, 12),
           ),
         ],
       ),
@@ -458,12 +458,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       width: double.infinity,
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1C1C2E) : Colors.white,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.5)),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.6)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.04),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -518,12 +518,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                  color: theme.primaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   "UTC  ${DateFormat('HH:mm').format(_now.toUtc())}",
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF0D0D0D)),
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: theme.primaryColor),
                 ),
               ),
             ],
@@ -540,9 +540,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1C1C2E) : Colors.white,
+            color: theme.cardColor,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: theme.dividerColor.withValues(alpha: 0.5)),
+            border: Border.all(color: theme.dividerColor.withValues(alpha: 0.6)),
           ),
           child: TextField(
             controller: _searchController,
@@ -592,31 +592,29 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: isDark
-                        ? [Colors.white, Colors.white.withValues(alpha: 0.8)]
-                        : [const Color(0xFF0D0D0D), const Color(0xFF3A3A3A)],
+                        ? [const Color(0xFF818CF8), const Color(0xFFA78BFA)]
+                        : [const Color(0xFF5B5BD6), const Color(0xFF7C3AED)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(14),
                   boxShadow: [
                     BoxShadow(
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.2)
-                          : theme.primaryColor.withValues(alpha: 0.35),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
+                      color: const Color(0xFF5B5BD6).withValues(alpha: 0.40),
+                      blurRadius: 14,
+                      offset: const Offset(0, 5),
                     ),
                   ],
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.add_rounded, color: isDark ? Colors.black : Colors.white, size: 20),
-                    const SizedBox(width: 6),
+                    Icon(Icons.add_rounded, color: Colors.white, size: 20),
+                    SizedBox(width: 6),
                     Text(
                       "Add Task",
                       style: TextStyle(
-                        color: isDark ? Colors.black : Colors.white,
+                        color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
                       ),
@@ -672,12 +670,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+              color: theme.primaryColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
               "${_tasks.length}",
-              style: const TextStyle(color: Color(0xFF0D0D0D), fontWeight: FontWeight.w900, fontSize: 13),
+              style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.w900, fontSize: 13),
             ),
           ),
       ],
@@ -686,9 +684,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Widget _buildTaskList(ThemeData theme) {
     if (_isLoadingTasks) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 60),
-        child: Center(child: CircularProgressIndicator(color: Color(0xFF0D0D0D))),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 60),
+        child: Center(child: CircularProgressIndicator(color: theme.primaryColor)),
       );
     }
 

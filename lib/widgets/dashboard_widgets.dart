@@ -214,8 +214,8 @@ class TaskCard extends StatelessWidget {
           stripColors = [const Color(0xFFFBBF24), const Color(0xFFF59E0B)];
         } else {
           stripColors = isDark 
-              ? [const Color(0xFF27272A), const Color(0xFF18181B)]
-              : [const Color(0xFFE4E4E7), const Color(0xFFF4F4F5)];
+              ? [const Color(0xFF252545), const Color(0xFF1A1A35)]
+              : [const Color(0xFFE8E8F4), const Color(0xFFF0F0FF)];
         }
 
         return AnimatedContainer(

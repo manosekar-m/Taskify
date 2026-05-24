@@ -54,9 +54,9 @@ class TaskifyApp extends StatelessWidget {
         final darkThemeBase = ThemeData(
           useMaterial3: true,
           brightness: Brightness.dark,
-          primaryColor: Palette.primary,
+          primaryColor: Palette.primaryDark,
           scaffoldBackgroundColor: Palette.backgroundDark,
-          cardColor: Palette.surfaceDark,
+          cardColor: Palette.cardDark,
           hintColor: Palette.hintDark,
           dividerColor: Palette.dividerDark,
         );
@@ -87,17 +87,17 @@ class TaskifyApp extends StatelessWidget {
           darkTheme: darkThemeBase.copyWith(
             textTheme: GoogleFonts.plusJakartaSansTextTheme(darkThemeBase.textTheme),
             colorScheme: ColorScheme.fromSeed(
-              seedColor: Palette.secondary,
+              seedColor: Palette.primaryDark,
               brightness: Brightness.dark,
-              primary: Palette.primary,
-              secondary: Palette.secondary,
+              primary: Palette.primaryDark,
+              secondary: Palette.secondaryDark,
               surface: Palette.surfaceDark,
               error: Palette.errorDark,
             ),
             snackBarTheme: SnackBarThemeData(
-              backgroundColor: const Color(0xFF27272A),
+              backgroundColor: Palette.cardDark,
               contentTextStyle: GoogleFonts.plusJakartaSans(color: Colors.white, fontWeight: FontWeight.w600),
-              actionTextColor: const Color(0xFFF472B6),
+              actionTextColor: Palette.secondaryDark,
               elevation: 8,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
